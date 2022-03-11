@@ -1,4 +1,10 @@
+"""
+Abstract Basic Classes
+
+"""
+
 from abc import ABCMeta, abstractclassmethod
+import numpy as np
 
 
 class DataLoader(object, metaclass=ABCMeta):
@@ -23,3 +29,29 @@ class DataLoader(object, metaclass=ABCMeta):
     @abstractclassmethod
     def load(self, data_name: str):
         pass
+
+
+class Regressor(object, metaclass=ABCMeta):
+    """An abstract class for regressor.
+
+
+    Attributes:
+        _X_fit: np.ndarray(n x m): 
+        _y_fit: np.ndarray(1 x m): 
+
+    Methods:
+        fit (X: np.ndarray, y: np.ndarray) -> None: 
+        predict(X: np.ndarray) -> np.ndarray: 
+    """
+
+    def __init__(self):
+        self._X_fit = None
+        self._y_fit = None
+
+    @abstractclassmethod
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        pass
+
+    @abstractclassmethod
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return np.zeros((1, X.shape[1]))
