@@ -1,6 +1,8 @@
-from .base import Regressor
+from deruck_python.ml.base import Regressor
+from deruck_python.ml.cost_functions import squared_loss
 import numpy as np
 import torch
+
 
 class LinearRegressor(Regressor):
     """Linear Regressor.
@@ -30,7 +32,8 @@ class LinearRegressor(Regressor):
         self._tol = tol
         self._max_iter = max_iter
         
-        self._param: torch.Tensor = torch.tensor([[]], requires_grad=True)
+        self._w: torch.Tensor = torch.tensor([[]])
+        self._b: torch.Tensor = torch.tensor([[]])
     
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """train linear regression model
@@ -41,8 +44,8 @@ class LinearRegressor(Regressor):
         
             y: np.ndarray:
         """
-        self._X_fit = X
-        self._y_fit = y
+        self._X_fit = torch.tensor(X).double()
+        self._y_fit = torch.tensor(y).double()
         self._n = X.shape[0]
 
         if self._method == "GD":
@@ -65,12 +68,28 @@ class LinearRegressor(Regressor):
         """
         if (X.shape[0] != self._X_fit.shape[0]):
             raise(Exception("The number of features does not match."))
-        return np.array((self._param[1:,:].T @ X + self._param[0, 0]).flatten())
+        with torch.no_grad():
+            return (self._w.T @ X + self._b).flatten().numpy()
     
     def _train_analytical(self) -> None:
-        X = np.r_[np.ones((1, self._X_fit.shape[1])), self._X_fit]
+        X = torch.cat([torch.ones(1, self._X_fit.shape[1]), self._X_fit], dim=0)
         y = self._y_fit
-        self._param = (np.linalg.inv(X @ X.T) @ X @ y.T).reshape(-1, 1)
+        param = (torch.inverse(X @ X.T) @ X @ y.T).reshape(-1, 1)
+        self._w = param[1:, :]
+        self._b = param[0, :]
             
     def _train_gradient_descent(self) -> None:
-        pass
+        self._w = torch.zeros((self._n, 1), requires_grad=True, dtype=torch.double)
+        self._b = torch.tensor(0.0, requires_grad=True, dtype=torch.double)
+        
+        self._cost_path = []
+        while(len(self._cost_path) < self._max_iter):
+            cost = squared_loss(self._w.T @ self._X_fit + self._b, self._y_fit)
+            self._cost_path.append(cost)
+            cost.backward()
+            with torch.no_grad():
+                self._w -= torch.tensor(self._learning_rate) * self._w.grad
+                self._b -= torch.tensor(self._learning_rate) * self._b.grad
+                self._w.grad.zero_()
+                self._b.grad.zero_()
+        
