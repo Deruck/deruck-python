@@ -20,9 +20,9 @@ $$x=\left[ \begin{matrix}
 
 ### 1.1 回归数据集
 ```python
-from deruck.ml.datasets import regDataLoader
+from deruck.ml.datasets import RegDataLoader
 
-reg_data_loader = regDataLoader()
+reg_data_loader = RegDataLoader()
 X, y = reg_data_loader(data_name = "wine")
 ```
 数据集及其说明
@@ -32,3 +32,15 @@ X, y = reg_data_loader(data_name = "wine")
 |`airfoil`|[link](https://archive.ics.uci.edu/ml/datasets/Airfoil+Self-Noise)|
 
 
+### 1.2 分类数据集
+```python
+from deruck.ml.datasets import ClfDataLoader
+
+clf_data_loader = ClfDataLoader()
+X, y = clf_data_loader(data_name = "iris_2")
+```
+数据集及其说明
+|数据集|说明|
+|---|---|
+|`iris_2`|二分类iris|
+|`iris_multi`|多分类iris|
